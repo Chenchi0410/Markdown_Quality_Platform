@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly INSTALL_ROOT="/opt/markdown-quality-platform"
+readonly SERVICE_USER="md-platform"
+readonly SERVICE_HOME="/var/lib/md-platform"
+readonly DATASET_DIR="/srv/markdown-quality-platform/datasets"
+
+if [[ ${EUID} -ne 0 ]]; then
+  echo "Run this installer as root: sudo bash deploy/install-ubuntu.sh" >&2
+  exit 1
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${ROOT_DIR}" != "${INSTALL_ROOT}" ]]; then
+  echo "Clone the repository to ${INSTALL_ROOT}; current path is ${ROOT_DIR}." >&2
+  exit 1
+fi
+
+PYTHON_BIN="${PYTHON_BIN:-python3.12}"
+for command in git node npm nginx "${PYTHON_BIN}" uv runuser systemctl; do
+  if ! command -v "${command}" >/dev/null 2>&1; then
+    echo "Required command not found: ${command}" >&2
+    exit 1
+  fi
+done
+
+node_major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
+if (( node_major < 22 )); then
+  echo "Node.js 22 or newer is required; found $(node --version)." >&2
+  exit 1
+fi
+
+if ! id -u "${SERVICE_USER}" >/dev/null 2>&1; then
+  useradd --system --create-home --home-dir "${SERVICE_HOME}" --shell /usr/sbin/nologin "${SERVICE_USER}"
+fi
+
+install -d -o "${SERVICE_USER}" -g "${SERVICE_USER}" "${DATASET_DIR}"
+chown -R "${SERVICE_USER}:${SERVICE_USER}" "${INSTALL_ROOT}"
+
+run_as_service() {
+  runuser -u "${SERVICE_USER}" -- env HOME="${SERVICE_HOME}" PATH="${PATH}" "$@"
+}
+
+run_as_service git -C "${INSTALL_ROOT}" submodule sync --recursive
+run_as_service git -C "${INSTALL_ROOT}" submodule update --init --recursive
+
+run_as_service npm --prefix "${INSTALL_ROOT}" ci
+run_as_service npm --prefix "${INSTALL_ROOT}" run build
+
+run_as_service bash -c 'cd "$1" && uv sync --locked --extra server' _ \
+  "${INSTALL_ROOT}/services/doc-eval"
+
+if [[ ! -x "${INSTALL_ROOT}/services/dataset-builder/.venv/bin/python" ]]; then
+  run_as_service "${PYTHON_BIN}" -m venv \
+    "${INSTALL_ROOT}/services/dataset-builder/.venv"
+fi
+run_as_service "${INSTALL_ROOT}/services/dataset-builder/.venv/bin/python" -m pip install \
+  --disable-pip-version-check -r \
+  "${INSTALL_ROOT}/services/dataset-builder/requirements.txt"
+
+run_as_service npm --prefix "${INSTALL_ROOT}/services/grammar-check/backend" ci
+run_as_service npm --prefix "${INSTALL_ROOT}/services/grammar-check/backend" run build
+run_as_service npm --prefix "${INSTALL_ROOT}/services/grammar-check/frontend" ci
+run_as_service npm --prefix "${INSTALL_ROOT}/services/grammar-check/frontend" run build
+
+install -m 0644 "${INSTALL_ROOT}/deploy/systemd/markdown-evaluation.service" \
+  /etc/systemd/system/markdown-evaluation.service
+install -m 0644 "${INSTALL_ROOT}/deploy/systemd/markdown-dataset-builder.service" \
+  /etc/systemd/system/markdown-dataset-builder.service
+install -m 0644 "${INSTALL_ROOT}/deploy/systemd/markdown-syntax-api.service" \
+  /etc/systemd/system/markdown-syntax-api.service
+if [[ "${SKIP_NGINX_SITE:-0}" != "1" ]]; then
+  install -m 0644 "${INSTALL_ROOT}/deploy/nginx/ubuntu.conf" \
+    /etc/nginx/sites-available/markdown-quality-platform
+
+  if [[ -e /etc/nginx/sites-enabled/default ]]; then
+    if [[ "${REPLACE_DEFAULT_NGINX_SITE:-0}" == "1" ]]; then
+      rm -f /etc/nginx/sites-enabled/default
+    else
+      echo "Ubuntu's default Nginx site is still enabled." >&2
+      echo "On a dedicated server rerun with REPLACE_DEFAULT_NGINX_SITE=1." >&2
+      echo "On a shared server merge deploy/nginx/ubuntu.conf and use SKIP_NGINX_SITE=1." >&2
+      exit 1
+    fi
+  fi
+
+  ln -sfn /etc/nginx/sites-available/markdown-quality-platform \
+    /etc/nginx/sites-enabled/markdown-quality-platform
+fi
+
+systemctl daemon-reload
+nginx -t
+
+cat <<'EOF'
+Installation and build completed. Services were not started automatically.
+
+Start and enable them individually:
+  sudo systemctl enable --now markdown-evaluation
+  sudo systemctl enable --now markdown-dataset-builder
+  sudo systemctl enable --now markdown-syntax-api
+  sudo systemctl enable --now nginx
+
+Then run:
+  sudo bash /opt/markdown-quality-platform/deploy/verify-ubuntu.sh
+EOF

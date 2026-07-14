@@ -1,0 +1,9 @@
+[submodule "evaluation"]
+	path = services/doc-eval
+	url = https://github.com/Chenchi0410/doc-eval.git
+[submodule "dataset-builder"]
+	path = services/dataset-builder
+	url = https://github.com/Chenchi0410/Construct_dataset_webserver.git
+[submodule "grammar-check"]
+	path = services/grammar-check
+	url = https://github.com/Chenchi0410/Grammar_Check_Webserver.git

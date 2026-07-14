@@ -1,0 +1,25 @@
+[Unit]
+Description=Markdown conversion evaluation service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=md-platform
+Group=md-platform
+WorkingDirectory=/opt/markdown-quality-platform/services/doc-eval
+Environment=PYTHONUNBUFFERED=1
+Environment=DATASET_DIR=/srv/markdown-quality-platform/datasets
+ExecStart=/opt/markdown-quality-platform/services/doc-eval/.venv/bin/python -m uvicorn server.app:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=180
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/markdown-quality-platform/datasets
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+[Unit]
+Description=Markdown evaluation dataset builder service
+After=network-online.target markdown-evaluation.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=md-platform
+Group=md-platform
+WorkingDirectory=/opt/markdown-quality-platform/services/dataset-builder
+Environment=PYTHONUNBUFFERED=1
+Environment=SHARED_DATASET_DIR=/srv/markdown-quality-platform/datasets
+Environment=PARSEBENCH_ROOT=/opt/markdown-quality-platform/services/doc-eval
+Environment=PARSEBENCH_PYTHON=/opt/markdown-quality-platform/services/doc-eval/.venv/bin/python
+ExecStart=/opt/markdown-quality-platform/services/dataset-builder/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/markdown-quality-platform/datasets
+
+[Install]
+WantedBy=multi-user.target
