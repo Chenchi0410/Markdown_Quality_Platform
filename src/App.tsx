@@ -14,6 +14,17 @@ interface PlatformModule {
   tone: string;
 }
 
+interface Workflow {
+  number: string;
+  label: string;
+  title: string;
+  description: string;
+  steps: string[];
+  moduleId: PlatformModule["id"];
+  action: string;
+  tone: string;
+}
+
 const modules: PlatformModule[] = [
   {
     id: "evaluation",
@@ -55,6 +66,53 @@ const developmentOrigins: Record<PlatformModule["id"], string> = {
   "dataset-builder": "http://127.0.0.1:8001",
   "syntax-check": "http://127.0.0.1:5173"
 };
+
+const workflows: Workflow[] = [
+  {
+    number: "01",
+    label: "转换器效果评测",
+    title: "使用黄金数据集，评测转换器效果",
+    description: "适用于多个部门需要在同一标准下验证各自 Markdown 转换器质量的场景。",
+    steps: [
+      "选择并下载评测数据集",
+      "使用本部门转换器将数据集转换为 Markdown",
+      "上传转换后的 Markdown 文件",
+      "查看评测结果"
+    ],
+    moduleId: "evaluation",
+    action: "跳转到转换器效果评测",
+    tone: "blue"
+  },
+  {
+    number: "02",
+    label: "评测集构建",
+    title: "构建适配评测系统的部门评测集",
+    description: "适用于部门已有自己的评测资料，但数据结构尚不符合统一评测系统要求的场景。",
+    steps: [
+      "准备 PDF 与人工检视后的 Markdown文件",
+      "上传文件并构建评测集",
+      "下载到本地，或发布到评测系统中",
+      "使用自建评测集进行转换器效果评测"
+    ],
+    moduleId: "dataset-builder",
+    action: "跳转到评测集构建",
+    tone: "green"
+  },
+  {
+    number: "03",
+    label: "语法格式检测",
+    title: "直接检查 Markdown 语法格式",
+    description: "适用于需要快速确认 Markdown 语法与排版是否存在问题的场景。",
+    steps: [
+      "上传 Markdown 文件或直接粘贴内容",
+      "执行语法与排版检测",
+      "查看问题，并处理可安全修复的内容"
+    ],
+    moduleId: "syntax-check",
+    action: "跳转到语法格式检测",
+    tone: "amber"
+  }
+];
 
 function getModuleUrl(module: PlatformModule): string {
   if (import.meta.env.DEV) {
@@ -129,62 +187,33 @@ function App() {
         </main>
       ) : (
         <main className="home-page">
-          <section className="hero">
-            <div className="hero-copy">
-              <span className="eyebrow">MARKDOWN QUALITY WORKSPACE</span>
-              <h1>让 Markdown 转换质量，<br />看得见、可比较、可修复。</h1>
-              <p>
-                一个入口，覆盖评测基准构建、转换效果评测与语法格式检测，
-                为不同数据条件提供清晰的质量验证路径。
-              </p>
-            </div>
-            <div className="hero-index" aria-hidden="true">
-              <span>MD</span>
-              <strong>03</strong>
-              <small>QUALITY TOOLS</small>
-            </div>
-          </section>
-
           <section className="workflow" aria-labelledby="workflow-title">
             <div className="workflow-heading">
               <span>推荐工作流</span>
-              <h2 id="workflow-title">根据现有数据，选择合适的质量路径</h2>
+              <h2 id="workflow-title">从当前数据条件出发，选择对应工作流</h2>
+              <p>每条路径都对应一种实际使用场景，并可直接进入所需工具。</p>
             </div>
             <div className="workflow-paths">
-              <button type="button" onClick={() => navigate("dataset-builder")}>
-                <small>有 PDF + 人工标注 MD</small>
-                <strong>构建黄金评测集</strong>
-              </button>
-              <span className="path-arrow" aria-hidden="true">→</span>
-              <button type="button" onClick={() => navigate("evaluation")}>
-                <small>已有黄金评测集</small>
-                <strong>评测转换效果</strong>
-              </button>
-              <span className="path-divider">或</span>
-              <button type="button" onClick={() => navigate("syntax-check")}>
-                <small>没有黄金数据</small>
-                <strong>进行语法格式检测</strong>
-              </button>
-            </div>
-          </section>
-
-          <section className="module-section" aria-labelledby="module-title">
-            <div className="section-heading">
-              <span>平台能力</span>
-              <h2 id="module-title">三个工具，一套完整的质量检查链路</h2>
-            </div>
-            <div className="module-grid">
-              {modules.map((item) => (
-                <article className={`module-card ${item.tone}`} key={item.id}>
-                  <div className="card-top">
-                    <span className="card-number">{item.number}</span>
-                    <span className="card-label">{item.shortTitle}</span>
+              {workflows.map((workflow) => (
+                <article className={`workflow-card ${workflow.tone}`} key={workflow.number}>
+                  <div className="workflow-card-heading">
+                    <span className="workflow-number">{workflow.number}</span>
+                    <div>
+                      <small>{workflow.label}</small>
+                      <h3>{workflow.title}</h3>
+                    </div>
                   </div>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                  <small>{item.detail}</small>
-                  <button type="button" onClick={() => navigate(item.id)}>
-                    {item.action}<span aria-hidden="true">↗</span>
+                  <p>{workflow.description}</p>
+                  <ol className="workflow-steps">
+                    {workflow.steps.map((step, index) => (
+                      <li key={step}>
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                        <strong>{step}</strong>
+                      </li>
+                    ))}
+                  </ol>
+                  <button type="button" onClick={() => navigate(workflow.moduleId)}>
+                    {workflow.action}<span aria-hidden="true">↗</span>
                   </button>
                 </article>
               ))}
