@@ -196,6 +196,13 @@ http://服务器内网IP/
 /srv/markdown-quality-platform/datasets
 ```
 
+安装脚本会创建以下符号链接，使上游 `doc-eval` 使用同一目录：
+
+```text
+/opt/markdown-quality-platform/services/doc-eval/datasets
+  -> /srv/markdown-quality-platform/datasets
+```
+
 第二个系统发布完成后，第一个系统需要重启才能重新扫描数据集：
 
 ```bash

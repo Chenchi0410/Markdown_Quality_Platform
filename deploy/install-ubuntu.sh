@@ -5,6 +5,7 @@ readonly INSTALL_ROOT="/opt/markdown-quality-platform"
 readonly SERVICE_USER="md-platform"
 readonly SERVICE_HOME="/var/lib/md-platform"
 readonly DATASET_DIR="/srv/markdown-quality-platform/datasets"
+readonly DOC_EVAL_DATASET_LINK="${INSTALL_ROOT}/services/doc-eval/datasets"
 
 if [[ ${EUID} -ne 0 ]]; then
   echo "Run this installer as root: sudo bash deploy/install-ubuntu.sh" >&2
@@ -44,6 +45,14 @@ run_as_service() {
 
 run_as_service git -C "${INSTALL_ROOT}" submodule sync --recursive
 run_as_service git -C "${INSTALL_ROOT}" submodule update --init --recursive
+
+if [[ -e "${DOC_EVAL_DATASET_LINK}" && ! -L "${DOC_EVAL_DATASET_LINK}" ]]; then
+  echo "Expected ${DOC_EVAL_DATASET_LINK} to be absent or a symbolic link." >&2
+  echo "Move any existing datasets to ${DATASET_DIR}, then rerun the installer." >&2
+  exit 1
+fi
+ln -sfn "${DATASET_DIR}" "${DOC_EVAL_DATASET_LINK}"
+chown -h "${SERVICE_USER}:${SERVICE_USER}" "${DOC_EVAL_DATASET_LINK}"
 
 run_as_service npm --prefix "${INSTALL_ROOT}" ci
 run_as_service npm --prefix "${INSTALL_ROOT}" run build

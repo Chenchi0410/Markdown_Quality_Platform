@@ -61,7 +61,7 @@ function Wait-Endpoint {
     throw "$Name did not become ready. Check $runtimeDir"
 }
 
-Start-ManagedProcess -Name "evaluation" -FilePath (Join-Path $EvaluationRoot ".venv\Scripts\python.exe") -Arguments @("-m", "uvicorn", "server.app:app", "--host", "127.0.0.1", "--port", "8000") -WorkingDirectory $EvaluationRoot
+Start-ManagedProcess -Name "evaluation" -FilePath (Join-Path $EvaluationRoot ".venv\Scripts\python.exe") -Arguments @("-m", "uvicorn", "server.app:app", "--reload", "--host", "127.0.0.1", "--port", "8000") -WorkingDirectory $EvaluationRoot
 
 Start-ManagedProcess -Name "dataset-builder" -FilePath (Join-Path $DatasetBuilderRoot ".venv\Scripts\python.exe") -Arguments @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8001") -WorkingDirectory $DatasetBuilderRoot
 

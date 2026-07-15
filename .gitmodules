@@ -1,6 +1,6 @@
 [submodule "evaluation"]
 	path = services/doc-eval
-	url = https://github.com/Chenchi0410/doc-eval.git
+	url = https://github.com/GoandFighting/doc-eval.git
 [submodule "dataset-builder"]
 	path = services/dataset-builder
 	url = https://github.com/Chenchi0410/Construct_dataset_webserver.git
