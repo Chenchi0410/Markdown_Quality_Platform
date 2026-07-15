@@ -70,46 +70,46 @@ const developmentOrigins: Record<PlatformModule["id"], string> = {
 const workflows: Workflow[] = [
   {
     number: "01",
-    label: "已有部门转换器",
-    title: "使用统一黄金数据，评测转换效果",
+    label: "转换器效果评测",
+    title: "使用黄金数据集，评测转换器效果",
     description: "适用于多个部门需要在同一标准下验证各自 Markdown 转换器质量的场景。",
     steps: [
-      "从转换效果评测系统下载黄金数据集 PDF",
-      "使用本部门转换器将 PDF 转换为 Markdown",
+      "选择并下载评测数据集",
+      "使用本部门转换器将数据集转换为 Markdown",
       "上传转换后的 Markdown 文件",
-      "查看统一指标评分与评测结果"
+      "查看评测结果"
     ],
     moduleId: "evaluation",
-    action: "进入转换效果评测",
+    action: "跳转到转换器效果评测",
     tone: "blue"
   },
   {
     number: "02",
-    label: "已有 PDF + 人工检视 MD",
-    title: "构建适配平台的部门评测集",
+    label: "评测集构建",
+    title: "构建适配评测系统的部门评测集",
     description: "适用于部门已有自己的评测资料，但数据结构尚不符合统一评测系统要求的场景。",
     steps: [
-      "准备同名 PDF 与人工检视后的 Markdown",
-      "上传文件并构建标准评测集",
-      "下载到本地，或发布到服务器共享目录",
-      "由转换效果评测系统识别并使用新数据集"
+      "准备 PDF 与人工检视后的 Markdown文件",
+      "上传文件并构建评测集",
+      "下载到本地，或发布到评测系统中",
+      "使用自建评测集进行转换器效果评测"
     ],
     moduleId: "dataset-builder",
-    action: "进入评测集构建",
+    action: "跳转到评测集构建",
     tone: "green"
   },
   {
     number: "03",
-    label: "没有评测集",
+    label: "语法格式检测",
     title: "直接检查 Markdown 语法格式",
-    description: "适用于暂时没有黄金数据，只需要快速确认 Markdown 语法与排版是否存在问题的场景。",
+    description: "适用于需要快速确认 Markdown 语法与排版是否存在问题的场景。",
     steps: [
       "上传 Markdown 文件或直接粘贴内容",
       "执行语法与排版检测",
       "查看问题，并处理可安全修复的内容"
     ],
     moduleId: "syntax-check",
-    action: "进入语法格式检测",
+    action: "跳转到语法格式检测",
     tone: "amber"
   }
 ];

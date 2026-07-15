@@ -139,11 +139,11 @@ button { color: inherit; }
 .workflow-card-heading small {
   display: inline-block;
   margin-bottom: 7px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
   color: var(--tone);
   background: var(--tone-soft);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
 }
 .workflow-card h3 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.45; }
@@ -162,9 +162,9 @@ button { color: inherit; }
   content: "";
   position: absolute;
   z-index: 0;
-  top: 19px;
-  right: calc(-50% + 20px);
-  left: calc(50% + 20px);
+  top: 25px;
+  right: calc(-50% + 25px);
+  left: calc(50% + 25px);
   height: 1px;
   background: #dce3ec;
 }
@@ -173,16 +173,16 @@ button { color: inherit; }
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 23px;
-  height: 23px;
+  width: 34px;
+  height: 34px;
   border: 1px solid color-mix(in srgb, var(--tone) 40%, white);
   border-radius: 50%;
   color: var(--tone);
   background: #fff;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 }
-.workflow-steps strong { color: #3d495b; font-size: 11px; font-weight: 600; line-height: 1.65; }
+.workflow-steps strong { color: #3d495b; font-size: 14px; font-weight: 600; line-height: 1.55; }
 .workflow-card > button {
   grid-area: action;
   display: flex;
@@ -237,12 +237,12 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(37, 99, 235, .28
     min-height: 0;
   }
   .workflow-steps { display: grid; grid-template-columns: 1fr; align-self: stretch; margin-bottom: 22px; }
-  .workflow-steps li { grid-template-columns: 28px 1fr; justify-items: start; gap: 10px; padding: 8px 0; text-align: left; }
+  .workflow-steps li { grid-template-columns: 38px 1fr; justify-items: start; gap: 10px; padding: 8px 0; text-align: left; }
   .workflow-steps li:not(:last-child)::after {
-    top: 29px;
+    top: 40px;
     right: auto;
     bottom: -5px;
-    left: 11px;
+    left: 16px;
     width: 1px;
     height: auto;
   }
