@@ -75,7 +75,7 @@ npm run build
 生产结构：
 
 ```text
-内网用户 → Nginx :80
+内网用户 → Nginx :443（TCP 80 仅重定向到 HTTPS）
              ├── /                         门户静态文件
              ├── /evaluation/              FastAPI :8000
              ├── /dataset-builder/         FastAPI :8001
@@ -93,14 +93,14 @@ npm run build
 - Python 3.12、`venv` 和 pip
 - Node.js 22 或更高版本、npm
 - `uv`
-- Nginx、curl、systemd
+- Nginx、OpenSSL、curl、systemd
 - 能访问 GitHub、PyPI 和 npm 仓库
 
 基础软件示例：
 
 ```bash
 sudo apt update
-sudo apt install -y git nginx curl python3.12 python3.12-venv
+sudo apt install -y git nginx openssl curl python3.12 python3.12-venv
 
 node --version       # 必须 >= 22
 npm --version
@@ -135,7 +135,8 @@ sudo git submodule update --init --recursive
 
 ```bash
 cd /opt/markdown-quality-platform
-sudo REPLACE_DEFAULT_NGINX_SITE=1 bash deploy/install-ubuntu.sh
+sudo HTTPS_IP=10.240.210.208 REPLACE_DEFAULT_NGINX_SITE=1 \
+  bash deploy/install-ubuntu.sh
 ```
 
 如果 Nginx 已承载其他系统，不要删除原有默认站点。先让运维把
@@ -151,6 +152,7 @@ sudo SKIP_NGINX_SITE=1 bash deploy/install-ubuntu.sh
 - 创建共享目录 `/srv/markdown-quality-platform/datasets`
 - 初始化并锁定三个 submodule
 - 安装 Python/Node.js 依赖并构建两个前端
+- 生成包含内网 IP SAN 的 365 天自签名 HTTPS 证书；证书临近过期时自动更新
 - 安装三个 systemd 单元和 Nginx 配置
 - 执行 `nginx -t`
 
@@ -183,10 +185,11 @@ sudo bash /opt/markdown-quality-platform/deploy/verify-ubuntu.sh
 全部通过后，内网用户访问：
 
 ```text
-http://服务器内网IP/
+https://10.240.210.208/
 ```
 
-只需向内网开放 TCP 80；不要开放 `3000`、`8000`、`8001`。
+普通自签名证书不受浏览器默认信任，首次访问会显示证书警告，这是当前部署方案的预期行为。
+向内网开放 TCP 443；TCP 80 仅用于跳转到 HTTPS。不要开放 `3000`、`8000`、`8001`。
 
 ### 6. 共享评测集
 

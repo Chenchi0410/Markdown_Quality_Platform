@@ -18,6 +18,7 @@ runuser -u "${SERVICE_USER}" -- git -C "${INSTALL_ROOT}" pull --ff-only
 runuser -u "${SERVICE_USER}" -- git -C "${INSTALL_ROOT}" submodule sync --recursive
 runuser -u "${SERVICE_USER}" -- git -C "${INSTALL_ROOT}" submodule update --init --recursive
 
+HTTPS_IP="${HTTPS_IP:-10.240.210.208}" \
 SKIP_NGINX_SITE="${SKIP_NGINX_SITE:-0}" \
   bash "${INSTALL_ROOT}/deploy/install-ubuntu.sh"
 

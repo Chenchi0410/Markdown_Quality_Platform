@@ -6,6 +6,10 @@ readonly SERVICE_USER="md-platform"
 readonly SERVICE_HOME="/var/lib/md-platform"
 readonly DATASET_DIR="/srv/markdown-quality-platform/datasets"
 readonly DOC_EVAL_DATASET_LINK="${INSTALL_ROOT}/services/doc-eval/datasets"
+readonly HTTPS_IP="${HTTPS_IP:-10.240.210.208}"
+readonly TLS_DIR="/etc/ssl/markdown-quality-platform"
+readonly TLS_CERT_FILE="${TLS_DIR}/selfsigned.crt"
+readonly TLS_KEY_FILE="${TLS_DIR}/selfsigned.key"
 
 if [[ ${EUID} -ne 0 ]]; then
   echo "Run this installer as root: sudo bash deploy/install-ubuntu.sh" >&2
@@ -19,12 +23,28 @@ if [[ "${ROOT_DIR}" != "${INSTALL_ROOT}" ]]; then
 fi
 
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
-for command in git node npm nginx "${PYTHON_BIN}" uv runuser systemctl; do
+for command in git node npm nginx openssl "${PYTHON_BIN}" uv runuser systemctl; do
   if ! command -v "${command}" >/dev/null 2>&1; then
     echo "Required command not found: ${command}" >&2
     exit 1
   fi
 done
+
+install -d -m 0700 -o root -g root "${TLS_DIR}"
+if [[ ! -s "${TLS_CERT_FILE}" ]] ||
+   [[ ! -s "${TLS_KEY_FILE}" ]] ||
+   ! openssl x509 -checkend 2592000 -noout -in "${TLS_CERT_FILE}" >/dev/null 2>&1 ||
+   ! openssl x509 -noout -ext subjectAltName -in "${TLS_CERT_FILE}" 2>/dev/null |
+     grep -Fq "IP Address:${HTTPS_IP}"; then
+  openssl req -x509 -nodes -newkey rsa:2048 -sha256 -days 365 \
+    -keyout "${TLS_KEY_FILE}" \
+    -out "${TLS_CERT_FILE}" \
+    -subj "/CN=${HTTPS_IP}" \
+    -addext "subjectAltName=IP:${HTTPS_IP}" \
+    -addext "extendedKeyUsage=serverAuth"
+fi
+chmod 0644 "${TLS_CERT_FILE}"
+chmod 0600 "${TLS_KEY_FILE}"
 
 node_major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
 if (( node_major < 22 )); then
