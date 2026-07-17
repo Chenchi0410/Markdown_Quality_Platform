@@ -152,7 +152,7 @@ function App() {
         <button className="brand" type="button" onClick={() => navigate("home")} aria-label="返回平台首页">
           <span className="brand-mark">M</span>
           <span className="brand-copy">
-            <strong>Markdown 质量评测平台</strong>
+            <strong>文档转换评测平台</strong>
             <small>QUALITY WORKSPACE</small>
           </span>
         </button>
